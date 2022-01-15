@@ -1,0 +1,85 @@
+- name: Deploy mezzanine
+  hosts: webservers
+  vars:
+    user: "{{ ansible_user }}"
+    proj_app: mezzanine
+    proj_name: "{{ proj_app }}"
+    venv_home: "{{ ansible_env.HOME }}/.virtualenvs"
+    venv_path: "{{ venv_home }}/{{ proj_name }}"
+    proj_path: "{{ ansible_env.HOME }}/mezzanine/{{ proj_name }}"
+    settings_path: "{{ proj_path }}/{{ proj_name }}"
+    reqs_path: requirements.txt
+    manage: "{{ python }} {{ proj_path }}/manage.py"
+    live_hostname: 192.168.33.10.xip.io
+    domains:
+      - 192.168.33.10.xip.io
+      - www.192.168.33.10.xip.io
+    repository: git@github.com:aleksej-tulko-idf/mezzanine_example.git
+    locale: en_US.UTF-8
+    conf_path: /etc/nginx/conf
+    tls_enabled: True
+    python: "{{ venv_path }}/bin/python3"
+    database_name: "{{ proj_name }}"
+    database_user: "{{ proj_name }}"
+    database_host: localhost
+    database_port: 5432
+    gunicorn_procname: gunicorn_mezzanine
+    num_workers: "multiprocessing.cpu_count() * 2 + 1"
+  vars_files:
+    - secrets.yml
+
+  tasks:
+    - name: install apt pakages
+      become: true
+      apt: 
+        name: "{{ item }}" 
+        update_cache: yes 
+        cache_valid_time: 3600
+        state: present
+      with_items:
+        - git
+        - libjpeg-dev
+        - libpq-dev
+        - memcached
+        - nginx
+        - postgresql
+        - python3-dev
+        - python3-pip
+        - python3-psycopg2
+        - python3-setuptools
+        - python3-virtualenv
+        - supervisor
+
+    - name: check out the repository on the host
+      git: 
+        repo: "{{ repository }}" 
+        dest: "{{ proj_path }}"
+        accept_hostkey: yes
+
+    - name: install Python requirements globally via pip
+      pip:
+        name: "{{ item }}" 
+        state: latest 
+        executable: pip3
+      with_items:
+        - pip
+        - virtualenv
+        - virtualenvwrapper
+      become: true
+
+    - name: install requirements.txt
+      pip: 
+        requirements: "{{ proj_path }}/{{ reqs_path }}" 
+        virtualenv: "{{ venv_path }}"
+
+    - name: install required Python packages
+      pip: 
+        name: "{{ item }}"
+        virtualenv: "{{ venv_path }}"
+      with_items:
+        - rcssmin
+        - gunicorn
+        - setproctitle
+        - psycopg2
+        - django_compressor
+        - python_memcached
