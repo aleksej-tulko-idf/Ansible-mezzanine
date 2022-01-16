@@ -43,11 +43,11 @@
         - memcached
         - nginx
         - postgresql
-        - python3-dev
-        - python3-pip
-        - python3-psycopg2
-        - python3-setuptools
-        - python3-virtualenv
+        - python-dev
+        - python-pip
+        - python-psycopg2
+        - python-setuptools
+        - python-virtualenv
         - supervisor
 
     - name: check out the repository on the host
@@ -83,11 +83,6 @@
         - psycopg2
         - django_compressor
         - python_memcached
-
-    - name: Make sure psycopg2 is installed
-      pip:
-        name: psycopg2
-        state: present
 
     - name: create project locale
       locale_gen: name={{ locale }}
