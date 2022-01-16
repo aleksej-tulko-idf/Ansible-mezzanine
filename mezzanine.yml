@@ -84,6 +84,11 @@
         - django_compressor
         - python_memcached
 
+    - name: Make sure psycopg2 is installed
+      pip:
+        name: psycopg2
+        state: present
+
     - name: create project locale
       locale_gen: name={{ locale }}
       become: True
