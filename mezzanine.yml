@@ -83,3 +83,34 @@
         - psycopg2
         - django_compressor
         - python_memcached
+
+    - name: create project locale
+      locale_gen: name={{ locale }}
+      become: True
+
+    - name: create DB user
+      postgresql_user:
+        name: "{{ database_user }}"
+        password: "{{ db_pass }}"
+        become: True
+        become_user: postgress
+
+    - name: create the database
+      postgresql_db:
+        name: "{{ database_name }}"
+        owner: "{{ database_user }}"
+        encoding: UTF8
+        lc_ctype: "{{ locale }}"
+        lc_collate: "{{ locale }}"
+        template: template0
+      become: True
+      become_user: postgres
+
+    - name: apply migrations to create the database, collect static content
+      django_manage:
+        command: "{{ item }}"
+        app_path: "{{ proj_path }}"
+        virtualenv: "{{ venv_path }}"
+      with_items:
+        - syncdb
+        - collectstatic
