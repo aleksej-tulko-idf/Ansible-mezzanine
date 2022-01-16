@@ -93,7 +93,7 @@
         name: "{{ database_user }}"
         password: "{{ db_pass }}"
         become: True
-        become_user: postgress
+        become_user: postgres
 
     - name: create the database
       postgresql_db:
